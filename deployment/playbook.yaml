@@ -1,0 +1,46 @@
+- name: Install and configure Nginx
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Deploy default website configuration
+      copy:
+        src: default.conf
+        dest: /etc/nginx/sites-available/default
+        mode: "644"
+      notify:
+        - Restart nginx    
+  
+    - name: Ensure Nginx is enabled and running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Copy my image
+      copy:
+        src: american_women.png
+        dest: /var/www/html/american_women.png
+        mode: "644"
+
+    - name: Deploy Hello World HTML page
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <h1>hihihihih</h1>
+          <h2>This page is served by: {{ inventory_hostname }}</h2>
+          <img src='american_women.png'>
+        mode: "644"
+      
+  handlers:
+    - name: Restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+

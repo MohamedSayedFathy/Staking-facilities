@@ -1,0 +1,4 @@
+terraform.tfstate
+terraform.tfstate.backup
+staking-facilities-key.json
+.terraform.lock.hcl
