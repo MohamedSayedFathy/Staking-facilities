@@ -35,8 +35,9 @@ The project automates the following tasks:
   - The **public subnet** allows external access via the load balancer and SSH access through a public IP.
 
 - **Python & Ansible:**  
-  Ubuntu comes preinstalled with Python 2.7, which is outdated and incompatible with modern Ansible (requires Python 3.2+).  
+  - Ubuntu comes preinstalled with Python 2.7, which is outdated and incompatible with modern Ansible (requires Python 3.2+).  
   ✅ Make sure to install Python 3 and set up a virtual environment to install a compatible version of Ansible on the controller and controlled machine.
+  - Make sure to add the IP addresses to the **hosts.ini** file in the deployment directory after running terraform.
 
 - **Load Balancer Settings:**
   - Uses **round-robin** to balance traffic across VMs.
