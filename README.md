@@ -1,58 +1,92 @@
 # Staking Facilities Infrastructure
 
-This repository contains the configuration for deploying the **Staking Facilities** project on Google Cloud Platform (GCP). The project leverages **Terraform** to provision the infrastructure and **Ansible** to configure and deploy a web service, ensuring high availability through a managed HTTP load balancer.
+This repository contains the configuration for deploying the **Staking Facilities** project on Google Cloud Platform (GCP). It uses **Terraform** to provision infrastructure and **Ansible** to configure and deploy a web service, ensuring high availability through a managed HTTP load balancer.
 
 ---
 
 ## Project Overview
 
-The project automates the following tasks:
+The project automates:
 
-- **Infrastructure Provisioning with Terraform:**
-  - **Custom Networking:** Creates custom VPCs and subnets to separate public and private traffic.
-  - **Dual-NIC VM Instances:** Provisions virtual machines with two network interfaces:
-    - **Public Interface (`eno1`)** in the `80.190.10.0/28` subnet with an external IP for public access.
-    - **Private Interface (`eno2`)** in the `10.10.10.0/24` subnet for internal communication.
-  - **Load Balancing:** Configures a managed HTTP load balancer to evenly distribute traffic across the VMs.
+### Infrastructure Provisioning with Terraform
+- **Custom Networking:** Creates custom VPCs and subnets separating public and private traffic.
+- **Dual-NIC VM Instances:**
+  - **Public Interface (eno1):** 80.190.10.0/28 subnet, external IP.
+  - **Private Interface (eno2):** 10.10.10.0/24 subnet, internal communication.
+- **Load Balancing:** Managed HTTP load balancer distributing traffic.
 
-- **Configuration Management with Ansible:**
-  - **Web Server Installation:** Installs and configures Nginx on each VM.
-  - **Website Deployment:** Deploys a simple website that displays the hostname of the VM serving the request, useful for verifying load balancing.
+### Configuration Management with Ansible
+- **Web Server Installation:** Installs/configures Nginx.
+- **Website Deployment:** Simple website displaying VM hostname.
+
+Access working website: **http://34.54.22.138/**
+
+Verify load balancing with:
+```bash
+curl -v http://34.54.22.138/
+```
 
 ---
 
 ## Design Choices
 
-- **Cloud Provider:**  
-  GCP was chosen due to its user-friendly interface, powerful ecosystem, and excellent Terraform compatibility. However, users must have a solid understanding of cloud networking concepts to utilize the resources properly.
-
-- **Network Design:**  
-  Two separate VPCs were used because each VPC in this setup only supports one subnet. One VPC handles **public traffic** (load balancer + SSH via public IP), and the other handles **private traffic** (internal communication between VMs).  
-  ⚠️ Each VM supports a maximum of two network interfaces — be mindful of this limitation when designing your network.
-
-- **Private & Public Interfaces:**  
-  - The **private subnet** enables secure, internal communication between the VM instances.
-  - The **public subnet** allows external access via the load balancer and SSH access through a public IP.
-
-- **Python & Ansible:**  
-  - Ubuntu comes preinstalled with Python 2.7, which is outdated and incompatible with modern Ansible (requires Python 3.2+).  
-  ✅ Make sure to install Python 3 and set up a virtual environment to install a compatible version of Ansible on the controller and controlled machine.
-  - Make sure to add the IP addresses to the **hosts.ini** file in the deployment directory after running terraform.
-
-- **Load Balancer Settings:**
-  - Uses **round-robin** to balance traffic across VMs.
-  - Performs **HTTP health checks every 10 seconds** to verify that each instance is responsive and healthy.
+- **Cloud Provider:** GCP, due to user-friendly interface and Terraform compatibility.
+- **Network Design:**
+  - Two separate VPCs (public and private).
+  - Each VM supports two network interfaces.
+- **Interfaces:**
+  - **Private subnet:** Internal VM communication.
+  - **Public subnet:** External access and SSH.
+- **Python & Ansible:**
+  - Use Python 3.x and virtual environment for Ansible.
+  - Update `hosts.ini` with VM IP addresses after Terraform provisioning.
+- **Load Balancer:**
+  - Round-robin load balancing.
+  - HTTP health checks every 10 seconds.
 
 ---
 
 ## Directory Structure
-
-```text
+```
 .
-├── compute.tf           # Terraform configuration for VM instances
-├── network.tf           # Terraform configuration for VPC, subnets, and firewall rules
-├── load_balancer.tf     # Terraform configuration for the HTTP load balancer
+├── compute.tf           # Terraform config for VMs
+├── network.tf           # Terraform config for VPC/subnets/firewall
+├── load_balancer.tf     # Terraform config for load balancer
 ├── outputs.tf           # Terraform outputs
-├── playbook.yml         # Ansible playbook for VM configuration and website deployment
+├── playbook.yml         # Ansible playbook
 ├── .gitignore           # Git ignore rules
-└── README.md            # Project documentation (this file)
+└── README.md            # Documentation
+```
+
+---
+
+## Commands
+
+### Step 1: Initialize Terraform
+```bash
+terraform init
+```
+
+### Step 2: Preview Terraform changes
+```bash
+terraform plan
+```
+
+### Step 3: Apply Terraform configuration
+```bash
+terraform apply
+```
+
+### Setup Python Virtual Environment
+```bash
+python3 -m venv ~/ansible-venv
+source ~/ansible-venv/bin/activate
+pip install ansible
+```
+
+### Run Ansible Playbook
+Replace `<your-username>` with your SSH username:
+```bash
+ansible-playbook -i hosts.ini playbook.yml -u <your-username>
+```
+
